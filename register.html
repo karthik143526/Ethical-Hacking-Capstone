@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Security Assessment Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .login-container { max-width: 400px; margin: 100px auto; }
+        .login-card { padding: 40px 30px; text-align: center; }
+        .login-card h2 { margin-bottom: 30px; }
+        .login-card .form-group { text-align: left; margin-bottom: 20px; }
+        .login-card input { width: 100%; }
+        .login-card .btn { width: 100%; margin-top: 10px; position: static; }
+        .error-msg { color: var(--accent-danger); margin-bottom: 15px; display: none; }
+        .success-msg { color: var(--accent-green); margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container login-container">
+        <div class="card glass-panel login-card">
+            <div class="logo" style="margin-bottom:20px;">
+                <span class="neon-text">Capstone Project</span>
+            </div>
+            <h2>Register Account</h2>
+            <div class="error-msg" id="error-msg"></div>
+            <div class="success-msg" id="success-msg"></div>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="Enter full name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Create password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" placeholder="Confirm password" required>
+            </div>
+            <button class="btn btn-primary" onclick="register()">Register</button>
+            <p style="margin-top: 20px; font-size: 0.9rem;">Already have an account? <a href="login.html" class="nav-link">Login here</a></p>
+        </div>
+    </div>
+
+    <script>
+        async function register() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            const err = document.getElementById('error-msg');
+            const succ = document.getElementById('success-msg');
+
+            err.style.display = "none";
+            succ.style.display = "none";
+
+            if (!name || !email || !password || !confirm) {
+                err.textContent = "Please fill in all fields.";
+                err.style.display = "block";
+                return;
+            }
+
+            if (password !== confirm) {
+                err.textContent = "Passwords do not match.";
+                err.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch('api/auth.php?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    succ.textContent = result.message;
+                    succ.style.display = "block";
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                } else {
+                    err.textContent = result.message;
+                    err.style.display = "block";
+                }
+            } catch (e) {
+                err.textContent = "Server connection error.";
+                err.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

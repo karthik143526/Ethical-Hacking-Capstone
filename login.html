@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Security Assessment Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .login-container { max-width: 400px; margin: 100px auto; }
+        .login-card { padding: 40px 30px; text-align: center; }
+        .login-card h2 { margin-bottom: 30px; }
+        .login-card .form-group { text-align: left; margin-bottom: 20px; }
+        .login-card input { width: 100%; }
+        .login-card .btn { width: 100%; margin-top: 10px; position: static; }
+        .error-msg { color: var(--accent-danger); margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container login-container">
+        <div class="card glass-panel login-card">
+            <div class="logo" style="margin-bottom:20px;">
+                <span class="neon-text">Capstone Project</span>
+            </div>
+            <h2>User Login</h2>
+            <div class="error-msg" id="error-msg"></div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            <button class="btn btn-primary" onclick="login()">Login</button>
+            <p style="margin-top: 20px; font-size: 0.9rem;">Don't have an account? <a href="register.html" class="nav-link">Register here</a></p>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const err = document.getElementById('error-msg');
+
+            if (!email || !password) {
+                err.textContent = "Please fill in all fields.";
+                err.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch('api/auth.php?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    if (result.role === 'admin') window.location.href = 'admin.html';
+                    else window.location.href = 'index.html';
+                } else {
+                    err.textContent = result.message;
+                    err.style.display = "block";
+                }
+            } catch (e) {
+                err.textContent = "Server connection error.";
+                err.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

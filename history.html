@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment History - Capstone Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--panel-border); }
+        th { color: var(--accent-neon); font-family: var(--font-heading); }
+        tr:hover { background: rgba(255,255,255,0.05); }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .Secure { background: rgba(46, 160, 67, 0.2); color: var(--accent-green); }
+        .Needs.Improvement { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); }
+        .Poor { background: rgba(248, 81, 73, 0.2); color: var(--accent-danger); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="logo">
+                <span class="neon-text">History</span>
+                <h1>Assessment Records</h1>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn-header">Dashboard</a>
+            </div>
+        </header>
+
+        <main class="card glass-panel" style="padding: 30px;">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Wi-Fi Name</th>
+                        <th>Security Type</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        async function loadHistory() {
+            try {
+                const response = await fetch('api/history.php');
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    let html = '';
+                    if(result.data.length === 0) {
+                        html = '<tr><td colspan="6" style="text-align:center;">No assessments found.</td></tr>';
+                    } else {
+                        result.data.forEach(r => {
+                            const date = new Date(r.created_at).toLocaleString();
+                            const cssClass = r.status.replace(' ', '.');
+                            html += `
+                                <tr>
+                                    <td>${date}</td>
+                                    <td>${r.ssid}</td>
+                                    <td>${r.security_type}</td>
+                                    <td>${r.score}/100</td>
+                                    <td><span class="badge ${cssClass}">${r.status}</span></td>
+                                    <td><a href="results.html?id=${r.id}" class="nav-link">View Report</a></td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    document.getElementById('history-body').innerHTML = html;
+                } else {
+                    document.getElementById('history-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color: red;">${result.message}</td></tr>`;
+                }
+            } catch(e) {
+                document.getElementById('history-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color: red;">Server error.</td></tr>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadHistory);
+    </script>
+</body>
+</html>

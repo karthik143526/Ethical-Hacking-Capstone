@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Assessment - Capstone Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .assessment-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .form-section h3 {
+            color: var(--accent-neon);
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            flex: 1;
+            position: relative;
+        }
+        .help-text {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        .btn-large {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.2rem;
+            position: static;
+        }
+        #pass-indicator {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="logo">
+                <span class="neon-text">Authorized Tool</span>
+                <h1>Run Security Assessment</h1>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn-header">Dashboard</a>
+            </div>
+        </header>
+
+        <main class="assessment-container">
+            <div class="card glass-panel" style="padding: 40px;">
+                <p style="margin-bottom: 30px; color: var(--text-secondary);">
+                    Enter the configuration details of the target Wi-Fi network below. 
+                    The system will analyze these settings to identify vulnerabilities.
+                </p>
+                
+                <!-- A. Network Information -->
+                <div class="form-section">
+                    <h3>A. Network Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ssid">Wi-Fi Name (SSID)</label>
+                            <input type="text" id="ssid" placeholder="Enter network name" required>
+                            <span class="help-text">The public broadcast name of your wireless network.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="sec-type">Security Type</label>
+                            <select id="sec-type" class="custom-select" onchange="toggleEnterprise()">
+                                <option value="WPA3-Personal">WPA3-Personal</option>
+                                <option value="WPA3-Enterprise">WPA3-Enterprise</option>
+                            </select>
+                            <span class="help-text">Personal is for homes/small offices. Enterprise uses centralized authentication (802.1X).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- B. WPA3 Security -->
+                <div class="form-section">
+                    <h3>B. WPA3 Security</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="wpa3-enabled">WPA3 Enabled</label>
+                            <select id="wpa3-enabled" class="custom-select">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                            <span class="help-text">WPA3 provides advanced protection against offline dictionary attacks.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="wpa3-sae">WPA3-SAE</label>
+                            <select id="wpa3-sae" class="custom-select">
+                                <option value="Enabled">Enabled</option>
+                                <option value="Disabled">Disabled</option>
+                            </select>
+                            <span class="help-text">Simultaneous Authentication of Equals (SAE) secures the initial key exchange.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="pmf">PMF (Protected Management Frames)</label>
+                            <select id="pmf" class="custom-select">
+                                <option value="Required">Required</option>
+                                <option value="Optional">Optional</option>
+                                <option value="Disabled">Disabled</option>
+                            </select>
+                            <span class="help-text">Prevents attackers from forging deauthentication packets to kick you off the network.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- C. Enterprise Authentication -->
+                <div class="form-section" id="ent-section" style="display: none;">
+                    <h3>C. Enterprise Authentication</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="radius">RADIUS Server</label>
+                            <select id="radius" class="custom-select">
+                                <option value="Configured">Configured</option>
+                                <option value="Not Configured">Not Configured</option>
+                            </select>
+                            <span class="help-text">A central server that handles user authentication for the Wi-Fi network.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-method">Authentication Method</label>
+                            <select id="auth-method" class="custom-select">
+                                <option value="EAP-TLS">EAP-TLS</option>
+                                <option value="PEAP">PEAP</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span class="help-text">EAP-TLS uses digital certificates. PEAP uses a username and password inside a secure tunnel.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="certificate">Certificate</label>
+                            <select id="certificate" class="custom-select">
+                                <option value="Valid">Valid</option>
+                                <option value="Invalid">Invalid</option>
+                            </select>
+                            <span class="help-text">Validates the identity of the authentication server to prevent rogue access points.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- D. Basic Security -->
+                <div class="form-section">
+                    <h3>D. Basic Security</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="wifi-password">Target Wi-Fi Password</label>
+                            <input type="text" id="wifi-password" placeholder="Enter Wi-Fi password" oninput="evaluatePassword()">
+                            <span class="help-text">Enter the network password to check its cryptographic strength.</span>
+                            <div style="margin-top: 5px; font-size: 0.9rem;">
+                                Strength: <span id="pass-indicator" style="color: var(--text-secondary);">None</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="fw-updated">Firmware Updated</label>
+                            <select id="fw-updated" class="custom-select">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                            <span class="help-text">Ensures the router has the latest security patches.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-large" onclick="runAssessment()">Run Security Assessment</button>
+                <div id="error-msg" style="color: var(--accent-danger); margin-top: 15px; display: none; text-align: center;"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - Capstone Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Include Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .reports-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 800px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="logo">
+                <span class="neon-text">Analytics</span>
+                <h1>Security Reports & Graphs</h1>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn-header">Dashboard</a>
+            </div>
+        </header>
+
+        <main>
+            <div class="card glass-panel" style="margin-bottom: 30px; text-align: center;">
+                <h2>Overall Security Posture</h2>
+                <p style="color: var(--text-secondary);">Visual breakdown of all wireless assessments conducted under your account.</p>
+            </div>
+
+            <div class="reports-grid">
+                <!-- Pie Chart: Secure vs Dangerous -->
+                <div class="card glass-panel">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--accent-neon);">Network Vulnerability Status</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bar Chart: Average Score -->
+                <div class="card glass-panel">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--accent-neon);">Average Security Score</h3>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card glass-panel" style="text-align: center; margin-top: 20px;">
+                <h3>Need detailed PDF reports?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Go to your Assessment History to view and download individual PDF reports for each network.</p>
+                <a href="history.html" class="btn btn-primary" style="position: static; display: inline-block; text-decoration: none; padding: 12px 25px;">View History</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function checkAuthAndLoadGraphs() {
+            try {
+                // Check auth using the NEW api
+                const response = await fetch('api/auth.php?action=check');
+                const result = await response.json();
+                if(result.status !== 'success') {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Fetch stats for the graphs
+                fetchStatsForGraphs();
+            } catch(e) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function fetchStatsForGraphs() {
+            try {
+                const response = await fetch('api/stats.php');
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    const secure = parseInt(result.secure) || 0;
+                    const dangerous = parseInt(result.problems) || 0;
+                    const avgScore = parseInt(result.avg) || 0;
+
+                    renderPieChart(secure, dangerous);
+                    renderBarChart(avgScore);
+                }
+            } catch(e) {
+                console.error("Failed to load graph data");
+            }
+        }
+
+        function renderPieChart(secure, dangerous) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            if (secure === 0 && dangerous === 0) {
+                document.getElementById('statusChart').outerHTML = '<p style="color: gray;">No assessment data available yet.</p>';
+                return;
+            }
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Secure Networks', 'Vulnerable / Dangerous'],
+                    datasets: [{
+                        data: [secure, dangerous],
+                        backgroundColor: [
+                            'rgba(46, 160, 67, 0.8)', // Green
+                            'rgba(248, 81, 73, 0.8)'  // Red
+                        ],
+                        borderColor: [
+                            '#2ea043',
+                            '#f85149'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#c9d1d9', font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart(avgScore) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            
+            if (avgScore === 0) {
+                document.getElementById('scoreChart').outerHTML = '<p style="color: gray;">No assessment data available yet.</p>';
+                return;
+            }
+
+            let barColor = 'rgba(248, 81, 73, 0.8)'; // Red
+            if (avgScore >= 90) barColor = 'rgba(46, 160, 67, 0.8)'; // Green
+            else if (avgScore >= 70) barColor = 'rgba(210, 153, 34, 0.8)'; // Yellow
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Average Security Score (out of 100)'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [avgScore],
+                        backgroundColor: [barColor],
+                        borderColor: [barColor.replace('0.8', '1')],
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { color: '#8b949e' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#8b949e' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', checkAuthAndLoadGraphs);
+    </script>
+</body>
+</html>
